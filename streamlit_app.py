@@ -61,13 +61,59 @@ stock_name = st.sidebar.selectbox(
 
 stock_name = stock_name.upper()
 
-# ---------------- STOCK DATA ---------------- #
+# ---------------- DOWNLOAD STOCK DATA ---------------- #
 
 stock = yf.download(
     stock_name,
     start="2020-01-01",
     end="2025-01-01"
 )
+
+# ---------------- FIX MULTI-INDEX COLUMNS ---------------- #
+
+if isinstance(stock.columns, pd.MultiIndex):
+    stock.columns = stock.columns.get_level_values(0)
+
+# ---------------- STOCK NEWS ---------------- #
+
+st.divider()
+
+st.subheader(f"📰 Latest {stock_name} News")
+
+try:
+
+    ticker = yf.Ticker(stock_name)
+
+    news = ticker.news
+
+    if news:
+
+        for item in news[:5]:
+
+            title = item.get("title", "No Title")
+
+            publisher = item.get(
+                "publisher",
+                "Unknown Publisher"
+            )
+
+            link = item.get("link", "")
+
+            st.markdown(f"### {title}")
+
+            st.write(publisher)
+
+            st.write(link)
+
+            st.divider()
+
+    else:
+
+        st.write("No news available.")
+
+except Exception:
+
+    st.warning("Unable to load news at the moment.")
 
 # ---------------- LATEST PRICE ---------------- #
 
@@ -82,12 +128,14 @@ change_percent = (change / previous_close) * 100
 col1, col2 = st.columns(2)
 
 with col1:
+
     st.metric(
         label=f"{stock_name} Latest Price",
         value=f"${latest_close:.2f}"
     )
 
 with col2:
+
     st.metric(
         label="Daily Change",
         value=f"{change:.2f} USD",
@@ -110,14 +158,10 @@ candlestick_data = stock[
     ['Open', 'High', 'Low', 'Close', 'Volume']
 ].copy()
 
-# Flatten columns if needed
-candlestick_data.columns = [
-    col[0] if isinstance(col, tuple) else col
-    for col in candlestick_data.columns
-]
+# Convert columns to numeric
 
-# Convert to numeric
 for column in candlestick_data.columns:
+
     candlestick_data[column] = pd.to_numeric(
         candlestick_data[column],
         errors='coerce'
@@ -154,11 +198,20 @@ st.subheader("Closing Price Graph")
 
 fig1 = plt.figure(figsize=(12, 6))
 
-plt.plot(stock['Close'], label='Close Price')
+plt.plot(
+    stock['Close'],
+    label='Close Price'
+)
 
-plt.plot(stock['MA20'], label='20-Day MA')
+plt.plot(
+    stock['MA20'],
+    label='20-Day MA'
+)
 
-plt.plot(stock['MA50'], label='50-Day MA')
+plt.plot(
+    stock['MA50'],
+    label='50-Day MA'
+)
 
 plt.xlabel("Date")
 
@@ -182,7 +235,8 @@ X = np.array(stock[['Close']])
 
 y = np.array(stock['Prediction'])
 
-# Train Test Split
+# ---------------- TRAIN TEST SPLIT ---------------- #
+
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -190,18 +244,19 @@ X_train, X_test, y_train, y_test = train_test_split(
     random_state=42
 )
 
-# Model
+# ---------------- MODEL ---------------- #
+
 model = LinearRegression()
 
 model.fit(X_train, y_train)
 
-# Predictions
+# ---------------- PREDICTIONS ---------------- #
+
 predictions = model.predict(X_test)
 
-# Accuracy
-accuracy = model.score(X_test, y_test)
+# ---------------- ACCURACY ---------------- #
 
-# ---------------- MODEL ACCURACY ---------------- #
+accuracy = model.score(X_test, y_test)
 
 st.divider()
 
@@ -217,9 +272,15 @@ st.subheader("Actual vs Predicted Prices")
 
 fig3 = plt.figure(figsize=(12, 6))
 
-plt.plot(y_test[:100], label='Actual')
+plt.plot(
+    y_test[:100],
+    label='Actual'
+)
 
-plt.plot(predictions[:100], label='Predicted')
+plt.plot(
+    predictions[:100],
+    label='Predicted'
+)
 
 plt.xlabel("Data Points")
 
@@ -237,7 +298,9 @@ st.subheader("Future Stock Price Prediction")
 
 latest_price = stock['Close'].to_numpy().flatten()[-1]
 
-future_price = model.predict([[latest_price]])
+future_price = model.predict(
+    [[latest_price]]
+)
 
 st.write(
     f"Predicted Price After {future_days} Days:",
