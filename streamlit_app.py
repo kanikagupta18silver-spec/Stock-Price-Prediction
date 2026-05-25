@@ -1,3 +1,5 @@
+from xgboost import XGBRegressor
+import plotly.graph_objects as go
 from streamlit_autorefresh import st_autorefresh
 import mplfinance as mpf
 import streamlit as st
@@ -150,6 +152,47 @@ stock['MA20'] = stock['Close'].rolling(20).mean()
 stock['MA50'] = stock['Close'].rolling(50).mean()
 
 # Buy/Sell signals
+# ---------------- RSI ---------------- #
+
+delta = stock['Close'].diff()
+
+gain = delta.where(
+    delta > 0,
+    0
+)
+
+loss = -delta.where(
+    delta < 0,
+    0
+)
+
+avg_gain = gain.rolling(
+    window=14
+).mean()
+
+avg_loss = loss.rolling(
+    window=14
+).mean()
+
+rs = avg_gain / avg_loss
+
+stock['RSI'] = 100 - (
+    100 / (1 + rs)
+)
+
+# ---------------- MACD ---------------- #
+
+ema12 = stock['Close'].ewm(
+    span=12,
+    adjust=False
+).mean()
+
+ema26 = stock['Close'].ewm(
+    span=26,
+    adjust=False
+).mean()
+
+stock['MACD'] = ema12 - ema26
 
 stock['Signal'] = 0
 
@@ -225,66 +268,154 @@ st.subheader("Stock Data")
 
 st.write(stock.head())
 
-# ---------------- CLOSING PRICE GRAPH ---------------- #
+# ---------------- INTERACTIVE STOCK GRAPH ---------------- #
 
 st.divider()
 
-st.subheader("Closing Price Graph with Signals")
+st.subheader("📊 Interactive Stock Analysis")
 
-fig1 = plt.figure(figsize=(12, 6))
+fig = go.Figure()
 
-plt.plot(
-    stock['Close'],
-    label='Close Price'
+# Close Price
+
+fig.add_trace(
+    go.Scatter(
+        x=stock.index,
+        y=stock['Close'],
+        mode='lines',
+        name='Close Price'
+    )
 )
 
-plt.plot(
-    stock['MA20'],
-    label='20-Day MA'
+# MA20
+
+fig.add_trace(
+    go.Scatter(
+        x=stock.index,
+        y=stock['MA20'],
+        mode='lines',
+        name='MA20'
+    )
 )
 
-plt.plot(
-    stock['MA50'],
-    label='50-Day MA'
+# MA50
+
+fig.add_trace(
+    go.Scatter(
+        x=stock.index,
+        y=stock['MA50'],
+        mode='lines',
+        name='MA50'
+    )
 )
 
-# Buy signals
+# BUY signals
 
 buy_signals = stock[
     stock['Signal'] == 1
 ]
 
-plt.scatter(
-    buy_signals.index,
-    buy_signals['Close'],
-    marker='^',
-    s=100,
-    label='BUY Signal'
+fig.add_trace(
+    go.Scatter(
+        x=buy_signals.index,
+        y=buy_signals['Close'],
+        mode='markers',
+        name='BUY',
+        marker=dict(
+            size=10,
+            symbol='triangle-up'
+        )
+    )
 )
 
-# Sell signals
+# SELL signals
 
 sell_signals = stock[
     stock['Signal'] == -1
 ]
 
-plt.scatter(
-    sell_signals.index,
-    sell_signals['Close'],
-    marker='v',
-    s=100,
-    label='SELL Signal'
+fig.add_trace(
+    go.Scatter(
+        x=sell_signals.index,
+        y=sell_signals['Close'],
+        mode='markers',
+        name='SELL',
+        marker=dict(
+            size=10,
+            symbol='triangle-down'
+        )
+    )
+)
+
+fig.update_layout(
+    template='plotly_dark',
+    height=600,
+    xaxis_title='Date',
+    yaxis_title='Price',
+    title=f'{stock_name} Interactive Trading Dashboard'
+)
+
+st.plotly_chart(
+    fig,
+    use_container_width=True
+)
+
+# ---------------- RSI GRAPH ---------------- #
+
+st.divider()
+
+st.subheader("RSI Indicator")
+
+fig_rsi = plt.figure(figsize=(12, 4))
+
+plt.plot(
+    stock['RSI'],
+    label='RSI'
+)
+
+plt.axhline(
+    70,
+    linestyle='--'
+)
+
+plt.axhline(
+    30,
+    linestyle='--'
 )
 
 plt.xlabel("Date")
 
-plt.ylabel("Price")
-
-plt.title(f"{stock_name} Trading Signals")
+plt.ylabel("RSI")
 
 plt.legend()
 
-st.pyplot(fig1)
+st.pyplot(fig_rsi)
+
+# ---------------- MACD GRAPH ---------------- #
+
+st.divider()
+
+st.subheader("MACD Indicator")
+
+fig_macd = plt.figure(figsize=(12, 4))
+
+plt.plot(
+    stock['MACD'],
+    label='MACD'
+)
+
+plt.axhline(
+    0,
+    linestyle='--'
+)
+
+plt.xlabel("Date")
+
+plt.ylabel("MACD")
+
+plt.legend()
+
+st.pyplot(fig_macd)
 
 # ---------------- MACHINE LEARNING ---------------- #
 
@@ -307,11 +438,19 @@ X_train, X_test, y_train, y_test = train_test_split(
     random_state=42
 )
 
-# ---------------- MODEL ---------------- #
+# ---------------- XGBOOST MODEL ---------------- #
 
-model = LinearRegression()
+model = XGBRegressor(
+    n_estimators=100,
+    learning_rate=0.1,
+    max_depth=5,
+    random_state=42
+)
 
-model.fit(X_train, y_train)
+model.fit(
+    X_train,
+    y_train
+)
 
 # ---------------- PREDICTIONS ---------------- #
 
@@ -325,7 +464,10 @@ st.divider()
 
 st.subheader("Model Accuracy")
 
-st.write(f"Accuracy: {accuracy:.2f}")
+st.metric(
+    "Model Accuracy Score",
+    f"{accuracy:.2f}"
+)
 
 # ---------------- ACTUAL VS PREDICTED ---------------- #
 
