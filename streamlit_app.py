@@ -1,3 +1,4 @@
+from streamlit_autorefresh import st_autorefresh
 import mplfinance as mpf
 import streamlit as st
 import yfinance as yf
@@ -8,23 +9,59 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 
-# Title
+# ---------------- PAGE CONFIG ---------------- #
+
+st.set_page_config(
+    page_title="Stock Prediction Dashboard",
+    page_icon="📈",
+    layout="wide"
+)
+
+# ---------------- CUSTOM CSS ---------------- #
+
+st.markdown("""
+<style>
+
+.stApp {
+    background-color: #0E1117;
+    color: white;
+}
+
+h1, h2, h3 {
+    color: white;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------- TITLE ---------------- #
+
 st.title("📈 Stock Price Prediction App")
 
-# User input
-stock_name = st.selectbox(
+st.markdown("""
+### Real-Time Stock Market Prediction Dashboard  
+Built using Machine Learning, Streamlit, and Financial Data Analysis
+""")
+
+# ---------------- AUTO REFRESH ---------------- #
+
+st_autorefresh(
+    interval=60000,
+    key="stock_refresh"
+)
+
+# ---------------- SIDEBAR ---------------- #
+
+st.sidebar.title("📊 Dashboard Settings")
+
+stock_name = st.sidebar.selectbox(
     "Select Stock",
     ["AAPL", "MSFT", "GOOGL", "TSLA", "AMZN"]
 )
 
-# Convert to uppercase
-stock_name = stock_name.upper() 
-
-# Show selected stock
-st.write("Selected Stock:", stock_name)
-
-# Download stock data
 stock_name = stock_name.upper()
+
+# ---------------- STOCK DATA ---------------- #
 
 stock = yf.download(
     stock_name,
@@ -32,18 +69,46 @@ stock = yf.download(
     end="2025-01-01"
 )
 
-# Moving averages
+# ---------------- LATEST PRICE ---------------- #
+
+latest_close = stock['Close'].to_numpy().flatten()[-1]
+
+previous_close = stock['Close'].to_numpy().flatten()[-2]
+
+change = latest_close - previous_close
+
+change_percent = (change / previous_close) * 100
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.metric(
+        label=f"{stock_name} Latest Price",
+        value=f"${latest_close:.2f}"
+    )
+
+with col2:
+    st.metric(
+        label="Daily Change",
+        value=f"{change:.2f} USD",
+        delta=f"{change_percent:.2f}%"
+    )
+
+# ---------------- MOVING AVERAGES ---------------- #
 
 stock['MA20'] = stock['Close'].rolling(20).mean()
 
 stock['MA50'] = stock['Close'].rolling(50).mean()
 
-# Candlestick chart
+# ---------------- CANDLESTICK CHART ---------------- #
+
+st.divider()
 
 st.subheader("Candlestick Chart")
 
-# Create clean dataframe
-candlestick_data = stock[['Open', 'High', 'Low', 'Close', 'Volume']].copy()
+candlestick_data = stock[
+    ['Open', 'High', 'Low', 'Close', 'Volume']
+].copy()
 
 # Flatten columns if needed
 candlestick_data.columns = [
@@ -51,38 +116,43 @@ candlestick_data.columns = [
     for col in candlestick_data.columns
 ]
 
-# Convert all columns to numeric
+# Convert to numeric
 for column in candlestick_data.columns:
     candlestick_data[column] = pd.to_numeric(
         candlestick_data[column],
         errors='coerce'
     )
 
-# Remove missing values
 candlestick_data = candlestick_data.dropna()
 
-# Create candlestick chart
 fig2, axlist = mpf.plot(
     candlestick_data,
     type='candle',
     mav=(20, 50),
     volume=True,
     style='yahoo',
-    figsize=(12,6),
+    figsize=(12, 6),
     warn_too_much_data=10000,
     returnfig=True
 )
 
 st.pyplot(fig2)
 
-# Show dataset
+# ---------------- STOCK DATA TABLE ---------------- #
+
+st.divider()
+
 st.subheader("Stock Data")
+
 st.write(stock.head())
 
-# Closing price graph
+# ---------------- CLOSING PRICE GRAPH ---------------- #
+
+st.divider()
+
 st.subheader("Closing Price Graph")
 
-fig1 = plt.figure(figsize=(12,6))
+fig1 = plt.figure(figsize=(12, 6))
 
 plt.plot(stock['Close'], label='Close Price')
 
@@ -91,6 +161,7 @@ plt.plot(stock['MA20'], label='20-Day MA')
 plt.plot(stock['MA50'], label='50-Day MA')
 
 plt.xlabel("Date")
+
 plt.ylabel("Price")
 
 plt.title(f"{stock_name} Stock Analysis")
@@ -99,20 +170,19 @@ plt.legend()
 
 st.pyplot(fig1)
 
-# Create prediction column
+# ---------------- MACHINE LEARNING ---------------- #
+
 future_days = 30
 
-stock['Prediction'] = stock[['Close']].shift(-future_days)
+stock['Prediction'] = stock['Close'].shift(-future_days)
 
-# Remove missing values
 stock = stock.dropna()
 
-# Features and labels
 X = np.array(stock[['Close']])
 
 y = np.array(stock['Prediction'])
 
-# Train-test split
+# Train Test Split
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -120,7 +190,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     random_state=42
 )
 
-# Train model
+# Model
 model = LinearRegression()
 
 model.fit(X_train, y_train)
@@ -131,27 +201,38 @@ predictions = model.predict(X_test)
 # Accuracy
 accuracy = model.score(X_test, y_test)
 
+# ---------------- MODEL ACCURACY ---------------- #
+
+st.divider()
+
 st.subheader("Model Accuracy")
 
-st.write(accuracy)
+st.write(f"Accuracy: {accuracy:.2f}")
 
-# Actual vs Predicted graph
+# ---------------- ACTUAL VS PREDICTED ---------------- #
+
+st.divider()
+
 st.subheader("Actual vs Predicted Prices")
 
-fig2 = plt.figure(figsize=(12,6))
+fig3 = plt.figure(figsize=(12, 6))
 
 plt.plot(y_test[:100], label='Actual')
 
 plt.plot(predictions[:100], label='Predicted')
 
 plt.xlabel("Data Points")
+
 plt.ylabel("Price")
 
 plt.legend()
 
-st.pyplot(fig2)
+st.pyplot(fig3)
 
-# Future prediction
+# ---------------- FUTURE PREDICTION ---------------- #
+
+st.divider()
+
 st.subheader("Future Stock Price Prediction")
 
 latest_price = stock['Close'].to_numpy().flatten()[-1]
@@ -159,6 +240,6 @@ latest_price = stock['Close'].to_numpy().flatten()[-1]
 future_price = model.predict([[latest_price]])
 
 st.write(
-    "Predicted Future Price:",
-    future_price[0]
+    f"Predicted Price After {future_days} Days:",
+    round(float(future_price[0]), 2)
 )
