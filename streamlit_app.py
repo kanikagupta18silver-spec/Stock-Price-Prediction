@@ -65,8 +65,7 @@ stock_name = stock_name.upper()
 
 stock = yf.download(
     stock_name,
-    start="2020-01-01",
-    end="2025-01-01"
+    start="2020-01-01"
 )
 
 # ---------------- FIX MULTI-INDEX COLUMNS ---------------- #
@@ -89,8 +88,10 @@ try:
     if news:
 
         for item in news[:5]:
-
-            title = item.get("title", "No Title")
+            title = item.get("title")
+            
+            if not title:
+                continue
 
             publisher = item.get(
                 "publisher",
@@ -148,6 +149,20 @@ stock['MA20'] = stock['Close'].rolling(20).mean()
 
 stock['MA50'] = stock['Close'].rolling(50).mean()
 
+# Buy/Sell signals
+
+stock['Signal'] = 0
+
+stock.loc[
+    stock['MA20'] > stock['MA50'],
+    'Signal'
+] = 1
+
+stock.loc[
+    stock['MA20'] < stock['MA50'],
+    'Signal'
+] = -1
+
 # ---------------- CANDLESTICK CHART ---------------- #
 
 st.divider()
@@ -182,6 +197,26 @@ fig2, axlist = mpf.plot(
 
 st.pyplot(fig2)
 
+# ---------------- TRADING SIGNALS ---------------- #
+
+st.divider()
+
+st.subheader("📈 Buy/Sell Trading Signals")
+
+latest_signal = stock['Signal'].iloc[-1]
+
+if latest_signal == 1:
+
+    st.success("BUY Signal Detected")
+
+elif latest_signal == -1:
+
+    st.error("SELL Signal Detected")
+
+else:
+
+    st.warning("No Clear Signal")
+
 # ---------------- STOCK DATA TABLE ---------------- #
 
 st.divider()
@@ -194,7 +229,7 @@ st.write(stock.head())
 
 st.divider()
 
-st.subheader("Closing Price Graph")
+st.subheader("Closing Price Graph with Signals")
 
 fig1 = plt.figure(figsize=(12, 6))
 
@@ -213,11 +248,39 @@ plt.plot(
     label='50-Day MA'
 )
 
+# Buy signals
+
+buy_signals = stock[
+    stock['Signal'] == 1
+]
+
+plt.scatter(
+    buy_signals.index,
+    buy_signals['Close'],
+    marker='^',
+    s=100,
+    label='BUY Signal'
+)
+
+# Sell signals
+
+sell_signals = stock[
+    stock['Signal'] == -1
+]
+
+plt.scatter(
+    sell_signals.index,
+    sell_signals['Close'],
+    marker='v',
+    s=100,
+    label='SELL Signal'
+)
+
 plt.xlabel("Date")
 
 plt.ylabel("Price")
 
-plt.title(f"{stock_name} Stock Analysis")
+plt.title(f"{stock_name} Trading Signals")
 
 plt.legend()
 
