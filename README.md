@@ -1,20 +1,29 @@
-# 📈 Stock Price Prediction Web App
+# 📈 AI-Powered Stock Market Prediction Dashboard
 
-A Machine Learning-based web application that predicts future stock prices using historical stock market data and Linear Regression.
-
-Built using Python, Scikit-learn, Streamlit, Pandas, NumPy, and Matplotlib.
+A real-time AI-powered stock market analytics dashboard built using Machine Learning, Streamlit, and financial data visualization techniques.
 
 ---
 
-# 🚀 Features
+# 🚀 Live Demo
 
-- Live stock market data fetching using yFinance
-- Historical stock price analysis
-- Data preprocessing and feature engineering
-- Linear Regression model for prediction
-- Interactive Streamlit web interface
-- Stock trend visualization
-- Actual vs Predicted price comparison
+[Click Here to Open Dashboard](https://stock-price-prediction-ru9arvok6svory5yoo3dni.streamlit.app/)
+
+---
+
+# 📌 Features
+
+✅ Real-time stock market data  
+✅ AI-based stock price prediction  
+✅ Interactive stock analytics dashboard  
+✅ Candlestick chart visualization  
+✅ Buy/Sell trading signal detection  
+✅ RSI technical indicator  
+✅ MACD technical indicator  
+✅ Future stock price prediction  
+✅ Interactive financial charts  
+✅ Live stock market news integration  
+✅ Auto-refresh dashboard  
+✅ Machine Learning prediction system  
 
 ---
 
@@ -24,110 +33,132 @@ Built using Python, Scikit-learn, Streamlit, Pandas, NumPy, and Matplotlib.
 - Pandas
 - NumPy
 - Scikit-learn
-- Matplotlib
+- XGBoost
 - Streamlit
+- Plotly
+- Matplotlib
 - yFinance
+- mplfinance
+- Streamlit Autorefresh
+
+---
+
+# 📊 Dashboard Screenshots
+
+## 🖥️ Main Dashboard
+
+![Dashboard](images/dashboard.png)
+
+---
+
+## 📈 Candlestick Chart
+
+![Candlestick Chart](images/candlestick_chart.png)
+
+---
+
+## 🤖 Actual vs Predicted Prices
+
+![Actual vs Predicted Prices](images/actual_vs_predicted.png)
+
+---
+
+## 🔮 Future Prediction
+
+![Future Prediction](images/future_prediction.png)
+
+---
+
+## 📊 Interactive Charts
+
+![Interactive Charts](images/interactive_charts.png)
+
+---
+
+## 📉 MACD Indicator
+
+![MACD Indicator](images/macd_indicator.png)
+
+---
+
+## 📈 RSI Indicator
+
+![RSI Indicator](images/rsi_indicator.png)
+
+---
+
+## 🚦 Trading Signals
+
+![Trading Signals](images/trading_signals.png)
 
 ---
 
 # 📂 Project Structure
 
-bash
-Stock-Price-Prediction/
+```bash
+
+stock-price-prediction/
 │
 ├── images/
-│   ├── stock_price.png
-│   └── prediction_graph.png
+│   ├── dashboard.png
+│   ├── candlestick_chart.png
+│   ├── actual_vs_predicted.png
+│   ├── future_prediction.png
+│   ├── interactive_charts.png
+│   ├── macd_indicator.png
+│   ├── rsi_indicator.png
+│   ├── trading_signals.png
 │
 ├── app.py
 ├── streamlit_app.py
 ├── requirements.txt
-└── README.md
-
-
----
-
-# 📊 Machine Learning Workflow
-
-1. Download historical stock market data
-2. Perform data preprocessing
-3. Create future prediction column
-4. Train Linear Regression model
-5. Generate future stock price predictions
-6. Visualize stock trends and results
+├── README.md
 
 ---
 
 # ▶️ Installation
 
-Clone the repository:
+git clone https://github.com/kanikagupta18silver-spec/Stock-Price-Prediction
 
-bash
-git clone https://github.com/kanikagupta18silver-spec/Stock-Price-Prediction.git
+cd stock-price-prediction
 
-
-Move into the project folder:
-
-bash
-cd Stock-Price-Prediction
-
-
-Install dependencies:
-
-bash
 pip install -r requirements.txt
 
-
----
-
-# ▶️ Run Python Script
-
-bash
-python app.py
-
-
----
-
-# 🌐 Run Streamlit Web App
-
-bash
 streamlit run streamlit_app.py
 
+---
+
+# ▶️ Run Application
+
+streamlit run streamlit_app.py
 
 ---
 
-# 📈 Output Screenshots
+# 📈 Machine Learning Workflow
 
-## Stock Price Graph
-
-![Stock Price](images/stock_price.png)
-
----
-
-## Actual vs Predicted Graph
-
-![Prediction Graph](images/prediction_graph.png)
-
----
-
-# 📌 Future Improvements
-
-- LSTM Deep Learning Model
-- Real-time stock prediction
-- Multiple stock comparison
-- Candlestick charts
-- Streamlit dashboard enhancements
+- Data Collection using Yahoo Finance API
+- Data Preprocessing using Pandas & NumPy
+- Feature Engineering
+- Moving Average Calculation
+- Trading Signal Detection
+- Model Training using XGBoost
+- Future Price Prediction
+- Interactive Financial Visualization
 
 ---
 
-# 👩‍💻 Author
+# 🚀 Future Improvements
+
+- Portfolio tracking system
+- Advanced AI forecasting
+- User authentication
+- Watchlist saving
+- Deep learning integration
+- Multi-stock comparison
+- Cloud database integration
+
+---
+
+# 👨‍💻 Author
 
 Kanika Gupta
-
----
-
-# ⭐ GitHub Repository
-
-GitHub Repository Link:
-
-https://github.com/kanikagupta18silver-spec/Stock-Price-Prediction
