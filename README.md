@@ -118,7 +118,7 @@ stock-price-prediction/
 
 # ▶️ Installation
 
-git clone https://github.com/kanikagupta18silver-spec/Stock-Price-Prediction
+git clone https://github.com/kanikagupta18silver-spec/AI-Powered-Stock-Market-Prediction-Dashboard-
 
 cd stock-price-prediction
 
